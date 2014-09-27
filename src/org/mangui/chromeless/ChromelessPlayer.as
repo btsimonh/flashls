@@ -1,4 +1,5 @@
 package org.mangui.chromeless {
+    import org.mangui.hls.utils.Log;
     import org.mangui.hls.utils.ScaleVideo;
     import org.mangui.hls.model.AudioTrack;
     import org.mangui.hls.HLSSettings;
@@ -137,13 +138,27 @@ package org.mangui.chromeless {
 
         protected function _fragmentLoadedHandler(event : HLSEvent) : void {
             if (ExternalInterface.available) {
-                ExternalInterface.call("onFragmentLoaded", event.loadMetrics.bandwidth, event.loadMetrics.level, stage.stageWidth);
+                ExternalInterface.call("onFragmentLoaded", event.loadMetrics);
             }
         };
 
         protected function _fragmentPlayingHandler(event : HLSEvent) : void {
             if (ExternalInterface.available) {
                 ExternalInterface.call("onFragmentPlaying", event.playMetrics);
+            }
+            var videoWidth : int = event.playMetrics.video_width;
+            var videoHeight : int = event.playMetrics.video_height;
+
+            if (videoWidth && videoHeight) {
+                var changed : Boolean = _videoWidth != videoWidth || _videoHeight != videoHeight;
+                if (changed) {
+                    _videoHeight = videoHeight;
+                    _videoWidth = videoWidth;
+                    _resize();
+                    if (ExternalInterface.available) {
+                        ExternalInterface.call("onVideoSize", _videoWidth, _videoHeight);
+                    }
+                }
             }
         };
 
@@ -163,22 +178,7 @@ package org.mangui.chromeless {
             _duration = event.mediatime.duration;
             _media_position = event.mediatime.position;
             if (ExternalInterface.available) {
-                ExternalInterface.call("onPosition", event.mediatime.position, event.mediatime.duration, event.mediatime.live_sliding, event.mediatime.buffer, event.mediatime.program_date);
-            }
-
-            var videoWidth : int = _video ? _video.videoWidth : _stageVideo.videoWidth;
-            var videoHeight : int = _video ? _video.videoHeight : _stageVideo.videoHeight;
-
-            if (videoWidth && videoHeight) {
-                var changed : Boolean = _videoWidth != videoWidth || _videoHeight != videoHeight;
-                if (changed) {
-                    _videoHeight = videoHeight;
-                    _videoWidth = videoWidth;
-                    _resize();
-                    if (ExternalInterface.available) {
-                        ExternalInterface.call("onVideoSize", _videoWidth, _videoHeight);
-                    }
-                }
+                ExternalInterface.call("onPosition", event.mediatime);
             }
         };
 
@@ -309,7 +309,7 @@ package org.mangui.chromeless {
             _hls.load(url);
         };
 
-        protected function _play(position : Number=-1) : void {
+        protected function _play(position : Number = -1) : void {
             _hls.stream.play(null, position);
         };
 
@@ -425,10 +425,12 @@ package org.mangui.chromeless {
 
             if (available && stage.stageVideos.length > 0) {
                 _stageVideo = stage.stageVideos[0];
+                _stageVideo.addEventListener(StageVideoEvent.RENDER_STATE, _onStageVideoStateChange)
                 _stageVideo.viewPort = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);
                 _stageVideo.attachNetStream(_hls.stream);
             } else {
                 _video = new Video(stage.stageWidth, stage.stageHeight);
+                _video.addEventListener(VideoEvent.RENDER_STATE, _onVideoStateChange);
                 addChild(_video);
                 _video.smoothing = true;
                 _video.attachNetStream(_hls.stream);
@@ -441,6 +443,14 @@ package org.mangui.chromeless {
                 _load(autoLoadUrl);
             }
         };
+
+        private function _onStageVideoStateChange(event : StageVideoEvent) : void {
+            Log.info("Video decoding:" + event.status);
+        }
+
+        private function _onVideoStateChange(event : VideoEvent) : void {
+            Log.info("Video decoding:" + event.status);
+        }
 
         protected function _onStageResize(event : Event) : void {
             stage.fullScreenSourceRect = new Rectangle(0, 0, stage.stageWidth, stage.stageHeight);

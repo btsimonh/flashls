@@ -427,7 +427,7 @@ package org.mangui.hls.stream {
                     Log.debug("MPEG2-TS found");
                 }
                 fragData.video_expected = true;
-                return new TSDemuxer(_hls.stage, _fragParsingAudioSelectionHandler, _fragParsingProgressHandler, _fragParsingCompleteHandler);
+                return new TSDemuxer(_hls.stage, _fragParsingAudioSelectionHandler, _fragParsingProgressHandler, _fragParsingCompleteHandler, _fragParsingVideoMetadataHandler);
             } else {
                 CONFIG::LOGGING {
                     Log.debug("probe fails");
@@ -740,6 +740,18 @@ package org.mangui.hls.stream {
             return _audioTrackController.audioTrackSelectionHandler(_frag_current, audioTrackList);
         }
 
+        /** triggered by demux, it should return video width/height */
+        private function _fragParsingVideoMetadataHandler(width : uint, height : uint) : void {
+            var fragData : FragmentData = _frag_current.data;
+            if (fragData.video_width == 0) {
+                CONFIG::LOGGING {
+                    Log.debug("AVC: width/height:" + width + "/" + height);
+                }
+                fragData.video_width = width;
+                fragData.video_height = height;
+            }
+        }
+
         /** triggered when demux has retrieved some tags from fragment **/
         private function _fragParsingProgressHandler(tags : Vector.<FLVTag>) : void {
             CONFIG::LOGGING {
@@ -769,11 +781,14 @@ package org.mangui.hls.stream {
                 fragData.tags.push(tag);
             }
 
-            /* do progressive buffering here. 
+            /* try to do progressive buffering here. 
              * only do it in case :
-             *      it is not a cold start use case. in case of cold start, accept progressive buffering if we start playback from lowest level
+             * 		first fragment is already loaded 
+             *      if first fragment is not loaded, we can do it if startlevel is already defined (if startFromLevel is set to -1
+             *      we first need to download one fragment to check the dl bw, in order to assess start level ...)
+             *      in case startFromLevel is to -1 and there is only one level, then we can do progressive buffering
              */
-            if (( _fragment_first_loaded || (_manifest_just_loaded && HLSSettings.startFromLevel != -1) )) {
+            if (( _fragment_first_loaded || (_manifest_just_loaded && (HLSSettings.startFromLevel != -1 || _levels.length == 1) ) )) {
                 if (fragData.audio_expected && !fragData.audio_found) {
                     /* if no audio tags found, it means that only video tags have been retrieved here
                      * we cannot do progressive buffering in that case.
@@ -825,7 +840,7 @@ package org.mangui.hls.stream {
                         }
                     }
                     // provide tags to HLSNetStream
-                    _tags_callback(_level, _frag_current.continuity, _frag_current.seqnum, _frag_current.tag_list, fragData.tags, fragData.tag_pts_min, fragData.tag_pts_max, _hasDiscontinuity, min_offset, _frag_current.program_date + fragData.tag_pts_start_offset);
+                    _tags_callback(_level, _frag_current.continuity, _frag_current.seqnum, !fragData.video_found, fragData.video_width, fragData.video_height, _frag_current.tag_list, fragData.tags, fragData.tag_pts_min, fragData.tag_pts_max, _hasDiscontinuity, min_offset, _frag_current.program_date + fragData.tag_pts_start_offset);
                     var processing_duration : Number = (new Date().valueOf() - _frag_current.metrics.loading_request_time);
                     var bandwidth : Number = Math.round(fragData.bytesLoaded * 8000 / processing_duration);
                     var tagsMetrics : HLSLoadMetrics = new HLSLoadMetrics(_level, bandwidth, fragData.tag_pts_end_offset, processing_duration);
@@ -885,7 +900,7 @@ package org.mangui.hls.stream {
 
             if (_manifest_just_loaded) {
                 _manifest_just_loaded = false;
-                if (HLSSettings.startFromLevel == -1) {
+                if (HLSSettings.startFromLevel == -1 && _levels.length > 1) {
                     // check if we can directly switch to a better bitrate, in case download bandwidth is enough
                     var bestlevel : int = _autoLevelManager.getbestlevel(fragMetrics.bandwidth);
                     if (bestlevel > _level) {
@@ -914,7 +929,7 @@ package org.mangui.hls.stream {
                 var tagsMetrics : HLSLoadMetrics = new HLSLoadMetrics(_level, fragMetrics.bandwidth, fragData.pts_max - fragData.pts_min, fragMetrics.processing_duration);
 
                 if (fragData.tags.length) {
-                    _tags_callback(_level, _frag_current.continuity, _frag_current.seqnum, _frag_current.tag_list, fragData.tags, fragData.tag_pts_min, fragData.tag_pts_max, _hasDiscontinuity, start_offset + fragData.tag_pts_start_offset / 1000, _frag_current.program_date + fragData.tag_pts_start_offset);
+                    _tags_callback(_level, _frag_current.continuity, _frag_current.seqnum, !fragData.video_found, fragData.video_width, fragData.video_height, _frag_current.tag_list, fragData.tags, fragData.tag_pts_min, fragData.tag_pts_max, _hasDiscontinuity, start_offset + fragData.tag_pts_start_offset / 1000, _frag_current.program_date + fragData.tag_pts_start_offset);
                     _hls.dispatchEvent(new HLSEvent(HLSEvent.TAGS_LOADED, tagsMetrics));
                     fragData.tags_pts_min_audio = fragData.tags_pts_max_audio;
                     fragData.tags_pts_min_video = fragData.tags_pts_max_video;
