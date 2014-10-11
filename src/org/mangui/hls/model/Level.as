@@ -1,8 +1,8 @@
 package org.mangui.hls.model {
-    CONFIG::LOGGING {
-        import org.mangui.hls.utils.Log;
-    }
-    import org.mangui.hls.utils.PTS;
+CONFIG::LOGGING {  
+	import org.mangui.hls.utils.Log;
+}
+	import org.mangui.hls.utils.PTS;
 
     /** HLS streaming quality level. **/
     public class Level {
@@ -45,7 +45,7 @@ package org.mangui.hls.model {
             if (fragments[0].data.valid && position < fragments[0].start_time)
                 return fragments[0];
 
-            var len : int = fragments.length;
+            var len:int = fragments.length;
             for (var i : int = 0; i < len; i++) {
                 /* check whether fragment contains current position */
                 if (fragments[i].data.valid && fragments[i].start_time <= position && fragments[i].start_time + fragments[i].duration > position) {
@@ -60,7 +60,7 @@ package org.mangui.hls.model {
             if (program_date < fragments[0].program_date)
                 return -1;
 
-            var len : int = fragments.length;
+            var len:int = fragments.length;
             for (var i : int = 0; i < len; i++) {
                 /* check whether fragment contains current position */
                 if (fragments[i].data.valid && fragments[i].program_date <= program_date && fragments[i].program_date + 1000 * fragments[i].duration > program_date) {
@@ -82,7 +82,7 @@ package org.mangui.hls.model {
             for (var i : int = firstIndex; i <= lastIndex; i++) {
                 var frag : Fragment = fragments[i];
                 /* check nearest fragment */
-                if ( frag.data.valid && (frag.duration >= 0) && (Math.abs(frag.data.pts_start_computed - pts) < Math.abs(frag.data.pts_start_computed + 1000 * frag.duration - pts))) {
+                if ( frag.data.valid && (frag.duration>= 0) && (Math.abs(frag.data.pts_start_computed - pts) < Math.abs(frag.data.pts_start_computed + 1000 * frag.duration - pts))) {
                     return frag.seqnum;
                 }
             }
@@ -119,7 +119,7 @@ package org.mangui.hls.model {
         /** Return the first index matching with given continuity counter **/
         private function getFirstIndexfromContinuity(continuity : int) : int {
             // look for first fragment matching with given continuity index
-            var len : int = fragments.length;
+            var len:int = fragments.length;
             for (var i : int = 0; i < len; i++) {
                 if (fragments[i].continuity == continuity)
                     return i;
@@ -182,9 +182,16 @@ package org.mangui.hls.model {
             end_seqnum = _fragments[len - 1].seqnum;
 
             if (idx_with_metrics != -1) {
+                frag = fragments[idx_with_metrics];
                 // if at least one fragment contains PTS info, recompute PTS information for all fragments
-                updateFragment(fragments[idx_with_metrics].seqnum, true, fragments[idx_with_metrics].data.pts_start, fragments[idx_with_metrics].data.pts_start + 1000 * fragments[idx_with_metrics].duration);
+                CONFIG::LOGGING {
+                    Log.debug("updateFragments: found PTS info from previous playlist,seqnum/PTS:" + frag.seqnum + "/" + frag.data.pts_start);
+                }
+                updateFragment(frag.seqnum, true, frag.data.pts_start, frag.data.pts_start + 1000 * frag.duration);
             } else {
+                CONFIG::LOGGING {
+                    Log.debug("updateFragments: unknown PTS info for this level");
+                }
                 duration = _fragments[len - 1].start_time + _fragments[len - 1].duration;
             }
             averageduration = duration / len;
@@ -289,7 +296,7 @@ package org.mangui.hls.model {
 
                 // second, adjust fragment offset
                 var start_time_offset : Number = fragments[0].start_time;
-                var len : int = fragments.length;
+                var len:int = fragments.length;
                 for (i = 0; i < len; i++) {
                     fragments[i].start_time = start_time_offset;
                     start_time_offset += fragments[i].duration;
@@ -300,6 +307,9 @@ package org.mangui.hls.model {
                 duration = start_time_offset;
                 return frag.start_time;
             } else {
+                CONFIG::LOGGING {
+                    Log.error("updateFragment:seqnum " + seqnum + " not found!");
+                }
                 return 0;
             }
         }

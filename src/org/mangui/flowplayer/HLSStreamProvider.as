@@ -10,6 +10,7 @@ package org.mangui.flowplayer {
 
     import org.mangui.hls.HLS;
     import org.mangui.hls.constant.HLSPlayStates;
+
     import org.flowplayer.model.Plugin;
     import org.flowplayer.model.PluginModel;
     import org.flowplayer.view.Flowplayer;
@@ -26,6 +27,7 @@ package org.mangui.flowplayer {
     CONFIG::LOGGING {
         import org.mangui.hls.utils.Log;
     }
+
     public class HLSStreamProvider  implements StreamProvider,Plugin {
         private var _volumecontroller : VolumeController;
         private var _playlist : Playlist;
@@ -69,9 +71,7 @@ package org.mangui.flowplayer {
             _hls.addEventListener(HLSEvent.MANIFEST_LOADED, _manifestHandler);
             _hls.addEventListener(HLSEvent.MEDIA_TIME, _mediaTimeHandler);
             _hls.addEventListener(HLSEvent.PLAYBACK_STATE, _stateHandler);
-
             _hls.addEventListener(HLSEvent.ID3_UPDATED, _ID3Handler);
-            _hls.addEventListener(HLSEvent.FRAGMENT_PLAYING, _fragmentPlayingHandler);
 
             var cfg : Object = _model.config;
             for (var object : String in cfg) {
@@ -92,26 +92,7 @@ package org.mangui.flowplayer {
         };
 
         private function _ID3Handler(event : HLSEvent) : void {
-			_clip.dispatch(ClipEventType.NETSTREAM_EVENT, "onID3", event.ID3Data);
-        };
-
-        private function _fragmentPlayingHandler(event : HLSEvent) : void {
-            var videoWidth : int = event.playMetrics.video_width;
-            var videoHeight : int = event.playMetrics.video_height;
-            if (videoWidth && videoHeight) {
-                var changed : Boolean = _videoWidth != videoWidth || _videoHeight != videoHeight;
-                if (changed) {
-                    CONFIG::LOGGING {
-                        Log.info("video size changed to " + videoWidth + "/" + videoHeight);
-                    }
-                    _videoWidth = videoWidth;
-                    _videoHeight = videoHeight;
-                    _clip.originalWidth = videoWidth;
-                    _clip.originalHeight = videoHeight;
-                    _clip.dispatch(ClipEventType.START);
-                    _clip.dispatch(ClipEventType.METADATA_CHANGED);
-                }
-            }
+            _clip.dispatch(ClipEventType.NETSTREAM_EVENT, "onID3", event.ID3Data);
         };
 
         private function _manifestHandler(event : HLSEvent) : void {
@@ -136,6 +117,22 @@ package org.mangui.flowplayer {
             _duration = event.mediatime.duration;
             _clip.duration = _duration;
             _bufferedTime = event.mediatime.buffer + event.mediatime.position;
+            var videoWidth : int = _video.videoWidth;
+            var videoHeight : int = _video.videoHeight;
+            if (videoWidth && videoHeight) {
+                var changed : Boolean = _videoWidth != videoWidth || _videoHeight != videoHeight;
+                if (changed) {
+                    CONFIG::LOGGING {
+                    Log.info("video size changed to " + videoWidth + "/" + videoHeight);
+                    }
+                    _videoWidth = videoWidth;
+                    _videoHeight = videoHeight;
+                    _clip.originalWidth = videoWidth;
+                    _clip.originalHeight = videoHeight;
+                    _clip.dispatch(ClipEventType.START);
+                    _clip.dispatch(ClipEventType.METADATA_CHANGED);
+                }
+            }
         };
 
         private function _stateHandler(event : HLSEvent) : void {

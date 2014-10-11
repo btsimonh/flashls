@@ -87,8 +87,9 @@ package org.mangui.hls.stream {
             _seekState = HLSSeekStates.IDLE;
             _timer = new Timer(100, 0);
             _timer.addEventListener(TimerEvent.TIMER, _checkBuffer);
-	    _client = new HLSNetStreamClient();
+            _client = new HLSNetStreamClient();
             _client.registerCallback("onHLSFragmentChange", onHLSFragmentChange);
+            _client.registerCallback("onID3Data", onID3Data);
             super.client = _client;
         };
 

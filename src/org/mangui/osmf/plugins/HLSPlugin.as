@@ -8,7 +8,7 @@ package org.mangui.osmf.plugins {
     import org.osmf.media.MediaResourceBase;
     import org.osmf.media.PluginInfo;
     import org.mangui.hls.HLSSettings;
-    
+  
     CONFIG::LOGGING {
     import org.mangui.hls.utils.Log;
     }
@@ -17,7 +17,7 @@ package org.mangui.osmf.plugins {
         public function HLSPlugin(items : Vector.<MediaFactoryItem>=null, elementCreatedNotification : Function = null) {
             items = new Vector.<MediaFactoryItem>();
             items.push(new MediaFactoryItem('org.mangui.osmf.plugins.HLSPlugin', canHandleResource, createMediaElement, MediaFactoryItemType.STANDARD));
-
+			
             super(items, elementCreatedNotification);
         }
 

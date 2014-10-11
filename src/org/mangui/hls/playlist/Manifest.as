@@ -1,14 +1,14 @@
 package org.mangui.hls.playlist {
     import org.mangui.hls.utils.Hex;
-
+    
     import flash.events.*;
     import flash.net.*;
     import flash.utils.ByteArray;
-
+    
     import org.mangui.hls.constant.HLSTypes;
 	import org.mangui.hls.model.Level;
     import org.mangui.hls.model.Fragment;
-
+    
     CONFIG::LOGGING {
     import org.mangui.hls.utils.Log;
     }
@@ -75,7 +75,7 @@ package org.mangui.hls.playlist {
                 } else {
                     url += "&" + extra;
                 }
-            }
+            } 
             if (DataUri.isDataUri(url)) {
                 CONFIG::LOGGING {
                 Log.debug("Identified playlist <" + url + "> as a data URI.");
@@ -251,7 +251,7 @@ package org.mangui.hls.playlist {
                     var url : String = _extractURL(line, base);
                     var fragment_decrypt_iv : ByteArray;
                     if (decrypt_url != null) {
-                        /* as per HLS spec :
+                        /* as per HLS spec :  
                          if IV not defined, then use seqnum as IV :
                          http://tools.ietf.org/html/draft-pantos-http-live-streaming-11#section-5.2
                          */
@@ -260,7 +260,7 @@ package org.mangui.hls.playlist {
                         } else {
                             fragment_decrypt_iv = Hex.toArray(zeropad(seqnum.toString(16), 32));
                         }
-
+                        
                         CONFIG::LOGGING {
                         Log.debug("sn/key/iv:" + seqnum + "/" + decrypt_url + "/" + Hex.fromArray(fragment_decrypt_iv));
                         }
@@ -315,7 +315,7 @@ package org.mangui.hls.playlist {
                         }
                     }
                     /* discard blank line, which length could be 0 or 1 if DOS terminated line (CR/LF)
-                     * next non-blank line will be URL
+                     * next non-blank line will be URL 
                      */
                     do {
                         line = lines[i++];

@@ -68,7 +68,6 @@ package org.mangui.hls.demux {
         /* last AVCC byte Array */
         private var _avcc : ByteArray;
 
-
         public static function probe(data : ByteArray) : Boolean {
             var pos : uint = data.position;
             var len : uint = Math.min(data.bytesAvailable, 188 * 2);

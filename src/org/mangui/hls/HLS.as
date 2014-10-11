@@ -7,7 +7,7 @@ package org.mangui.hls {
     import flash.net.URLStream;
     import flash.events.EventDispatcher;
     import flash.events.Event;
-
+    
     import org.mangui.hls.model.Level;
     import org.mangui.hls.event.HLSEvent;
     import org.mangui.hls.playlist.AltAudioTrack;
@@ -17,7 +17,7 @@ package org.mangui.hls {
     import org.mangui.hls.stream.HLSNetStream;
 
     CONFIG::LOGGING {
-        import org.mangui.hls.utils.Log;
+    import org.mangui.hls.utils.Log;
     }
     /** Class that manages the streaming process. **/
     public class HLS extends EventDispatcher {
@@ -47,7 +47,7 @@ package org.mangui.hls {
         override public function dispatchEvent(event : Event) : Boolean {
             if (event.type == HLSEvent.ERROR) {
                 CONFIG::LOGGING {
-                    Log.error((event as HLSEvent).error);
+                Log.error((event as HLSEvent).error);
                 }
                 _hlsNetStream.close();
             }

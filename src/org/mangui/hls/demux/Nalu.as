@@ -86,7 +86,7 @@ package org.mangui.hls.demux {
             }
             nalu.position = position;
             return units;
-        };
+        };		
 		
         // read the rbsp data from a marked NAL unit
         public static function getRBSP( nalu:ByteArray, UnitMarkers:VideoFrame ): ByteArray {

@@ -14,7 +14,7 @@ package org.mangui.hls.playlist {
     import org.mangui.hls.model.Fragment;
 
     CONFIG::LOGGING {
-        import org.mangui.hls.utils.Log;
+    import org.mangui.hls.utils.Log;
     }
     /** Loader for hls manifests. **/
     public class ManifestLoader {
@@ -76,7 +76,7 @@ package org.mangui.hls.playlist {
                 txt = "Cannot load M3U8: crossdomain access denied:" + event.text;
             } else if (event is IOErrorEvent && _levels.length && (HLSSettings.manifestLoadMaxRetry == -1 || _retry_count < HLSSettings.manifestLoadMaxRetry)) {
                 CONFIG::LOGGING {
-                    Log.warn("I/O Error while trying to load Playlist, retry in " + _retry_timeout + " ms");
+                Log.warn("I/O Error while trying to load Playlist, retry in " + _retry_timeout + " ms");
                 }
                 _timeoutID = setTimeout(_loadActiveLevelPlaylist, _retry_timeout);
                 /* exponential increase of retry timeout, capped to manifestLoadMaxRetryTimeout */
@@ -115,11 +115,11 @@ package org.mangui.hls.playlist {
             _reload_playlists_timer = getTimer();
             _retry_timeout = 1000;
             _retry_count = 0;
-            _hls.dispatchEvent(new HLSEvent(HLSEvent.MANIFEST_LOADING, url));
+            _hls.dispatchEvent(new HLSEvent(HLSEvent.MANIFEST_LOADING,url));
 
             if (DataUri.isDataUri(url)) {
                 CONFIG::LOGGING {
-                    Log.debug("Identified main manifest <" + url + "> as a data URI.");
+                Log.debug("Identified main manifest <" + url + "> as a data URI.");
                 }
                 var data : String = new DataUri(url).extractData();
                 _parseManifest(data || "");
@@ -168,7 +168,7 @@ package org.mangui.hls.playlist {
                 _canStart = (_levels[level].fragments.length > 0);
                 if (_canStart) {
                     CONFIG::LOGGING {
-                        Log.debug("first level filled with at least 1 fragment, notify event");
+                    Log.debug("first level filled with at least 1 fragment, notify event");
                     }
                     _hls.dispatchEvent(new HLSEvent(HLSEvent.MANIFEST_LOADED, _levels));
                 }
@@ -187,15 +187,15 @@ package org.mangui.hls.playlist {
                     level.url = _url;
                     _levels.push(level);
                     _hls.dispatchEvent(new HLSEvent(HLSEvent.MANIFEST_PARSED, _levels));
-                    _hls.dispatchEvent(new HLSEvent(HLSEvent.LEVEL_LOADING, 0));
+                    _hls.dispatchEvent(new HLSEvent(HLSEvent.LEVEL_LOADING,0));
                     CONFIG::LOGGING {
-                        Log.debug("1 Level Playlist, load it");
+                    Log.debug("1 Level Playlist, load it");
                     }
                     _current_level = 0;
                     _parseLevelPlaylist(string, _url, 0);
                 } else if (string.indexOf(Manifest.LEVEL) > 0) {
                     CONFIG::LOGGING {
-                        Log.debug("adaptive playlist:\n" + string);
+                    Log.debug("adaptive playlist:\n" + string);
                     }
                     // adaptative playlist, extract levels from playlist, get them and parse them
                     _levels = Manifest.extractLevels(string, _url);
@@ -205,7 +205,7 @@ package org.mangui.hls.playlist {
                     _loadActiveLevelPlaylist();
                     if (string.indexOf(Manifest.ALTERNATE_AUDIO) > 0) {
                         CONFIG::LOGGING {
-                            Log.debug("alternate audio level found");
+                        Log.debug("alternate audio level found");
                         }
                         // parse alternate audio tracks
                         _alt_audio_tracks = Manifest.extractAltAudioTracks(string, _url);
@@ -230,7 +230,7 @@ package org.mangui.hls.playlist {
             _reload_playlists_timer = getTimer();
             // load active M3U8 playlist only
             _manifest_loading = new Manifest();
-            _hls.dispatchEvent(new HLSEvent(HLSEvent.LEVEL_LOADING, _current_level));
+            _hls.dispatchEvent(new HLSEvent(HLSEvent.LEVEL_LOADING,_current_level));
             _manifest_loading.loadPlaylist(_levels[_current_level].url, _parseLevelPlaylist, _errorHandler, _current_level, _type, HLSSettings.flushLiveURLCache);
         };
 
@@ -239,12 +239,12 @@ package org.mangui.hls.playlist {
             if (_current_level != event.level) {
                 _current_level = event.level;
                 CONFIG::LOGGING {
-                    Log.debug("switch to level " + _current_level);
+                Log.debug("switch to level " + _current_level);
                 }
                 if (_type == HLSTypes.LIVE || _levels[_current_level].fragments.length == 0) {
                     _closed = false;
                     CONFIG::LOGGING {
-                        Log.debug("(re)load Playlist");
+                    Log.debug("(re)load Playlist");
                     }
                     clearTimeout(_timeoutID);
                     _timeoutID = setTimeout(_loadActiveLevelPlaylist, 0);
@@ -254,7 +254,7 @@ package org.mangui.hls.playlist {
 
         private function _close() : void {
             CONFIG::LOGGING {
-                Log.debug("cancel any manifest load in progress");
+            Log.debug("cancel any manifest load in progress");
             }
             _closed = true;
             clearTimeout(_timeoutID);
@@ -296,7 +296,7 @@ package org.mangui.hls.playlist {
                 // in case of audio only playlist, force startLevel to 0
                 if (start_level == -1) {
                     CONFIG::LOGGING {
-                        Log.info("playlist is audio-only");
+                    Log.info("playlist is audio-only");
                     }
                     start_level = 0;
                 } else {
@@ -307,7 +307,7 @@ package org.mangui.hls.playlist {
                 }
             }
             CONFIG::LOGGING {
-                Log.debug("start level :" + start_level);
+            Log.debug("start level :" + start_level);
             }
             return start_level;
         }
@@ -336,7 +336,7 @@ package org.mangui.hls.playlist {
                 }
             }
             CONFIG::LOGGING {
-                Log.debug("seek level :" + seek_level);
+            Log.debug("seek level :" + seek_level);
             }
             return seek_level;
         }
